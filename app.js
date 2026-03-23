@@ -7,10 +7,23 @@ import { createNodeMiddleware } from '@octokit/webhooks'
 // Load environment variables from .env file
 dotenv.config()
 
+function loadPrivateKey() {
+ const inline = process.env.PRIVATE_KEY
+ if (inline) {
+   return inline.replace(/\\n/g, '\n')
+ }
+ const privateKeyPath = process.env.PRIVATE_KEY_PATH
+ if (!privateKeyPath) {
+   throw new Error(
+     'Set PRIVATE_KEY (PEM string) or PRIVATE_KEY_PATH (path to .pem file)'
+   )
+ }
+ return fs.readFileSync(privateKeyPath, 'utf8')
+}
+
 // Set configured values
 const appId = process.env.APP_ID
-const privateKeyPath = process.env.PRIVATE_KEY_PATH
-const privateKey = fs.readFileSync(privateKeyPath, 'utf8')
+const privateKey = loadPrivateKey()
 const secret = process.env.WEBHOOK_SECRET
 const enterpriseHostname = process.env.ENTERPRISE_HOSTNAME
 const messageForNewPRs = fs.readFileSync('./message.md', 'utf8')
